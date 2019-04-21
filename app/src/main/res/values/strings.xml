@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">DriverAppDemo</string>
+    <string name="uber_text">U B E R</string>
+    <string name="partner_text_view">PARTNER</string>
+    <string name="driver_app_text_view">LOOKING FOR THE RIDER APP?</string>
+    <string name="sign_up_button_text">REGISTER</string>
+    <string name="cancel_button_text">CANCEL</string>
+    <string name="sign_in_button_text">SIGN IN</string>
+    <string name="hint_email">email</string>
+    <string name="hint_password">password</string>
+    <string name="hint_name">name</string>
+    <string name="hint_phone">phone</string>
+    <string name="register_dialog_title">REGISTER</string>
+    <string name="login_dialog_title">SIGN IN</string>
+    <string name="register_dialog_message">Please use email to register</string>
+    <string name="login_dialog_message">Please user email to login</string>
+</resources>

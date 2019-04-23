@@ -14,4 +14,5 @@
     <string name="login_dialog_title">SIGN IN</string>
     <string name="register_dialog_message">Please use email to register</string>
     <string name="login_dialog_message">Please user email to login</string>
+    <string name="title_activity_welcome">Map</string>
 </resources>

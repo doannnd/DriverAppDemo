@@ -8,18 +8,17 @@
     android:layout_height="match_parent"
     tools:context=".WelcomeActivity">
 
-    <EditText
-        android:id="@+id/edt_place"
+    <fragment
+        android:id="@+id/places_autocomplete_fragment"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="place"
-        android:inputType="text"
+        android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
         map:layout_constraintStart_toStartOf="parent"
         map:layout_constraintTop_toTopOf="parent"
         map:layout_constraintBottom_toTopOf="@id/driver_map"
-        map:layout_constraintEnd_toStartOf="@id/btnGo"/>
+        map:layout_constraintEnd_toEndOf="parent"/>
 
-    <Button
+    <!--<Button
         android:id="@+id/btnGo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -27,7 +26,7 @@
         map:layout_constraintEnd_toEndOf="parent"
         map:layout_constraintTop_toTopOf="parent"
         map:layout_constraintBottom_toTopOf="@id/driver_map"
-        map:layout_constraintStart_toEndOf="@id/edt_place"/>
+        map:layout_constraintStart_toEndOf="@id/places_autocomplete_fragment"/>-->
 
     <fragment
         android:id="@+id/driver_map"
@@ -36,7 +35,7 @@
         android:layout_height="0dp"
         map:layout_constraintEnd_toEndOf="parent"
         map:layout_constraintStart_toStartOf="parent"
-        map:layout_constraintTop_toBottomOf="@id/edt_place"
+        map:layout_constraintTop_toBottomOf="@id/places_autocomplete_fragment"
         map:layout_constraintBottom_toTopOf="@id/driver_card_view"/>
 
     <android.support.v7.widget.CardView

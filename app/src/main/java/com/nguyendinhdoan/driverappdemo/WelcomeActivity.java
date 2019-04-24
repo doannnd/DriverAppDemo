@@ -2,6 +2,7 @@ package com.nguyendinhdoan.driverappdemo;
 
 import android.Manifest;
 import android.animation.ValueAnimator;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -27,12 +28,11 @@ import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
-import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -48,6 +48,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.SquareCap;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.internal.es;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -66,13 +72,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallback, CompoundButton.OnCheckedChangeListener, View.OnClickListener {
+public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallback, CompoundButton.OnCheckedChangeListener {
 
     private static final String TAG = "ACTIVITY";
     private GoogleMap mMap;
@@ -99,11 +106,11 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
     private Handler handler;
     private LatLng startPosition, endPosition, currentPosition;
     private int index, next;
-    private Button btnGo;
-    private EditText edtPlace;
     private String destination;
     private PolylineOptions polylineOptions, blackPolylineOptions;
     private Polyline blackPolyline, greyPolyline;
+    private AutocompleteSupportFragment places;
+    private PlacesClient placesClient;
 
     private IGoogleAPI mServices;
 
@@ -133,6 +140,7 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
                     carMarker.setPosition(newPos);
                     carMarker.setAnchor(0.5f, 0.5f);
                     carMarker.setRotation(getBearing(startPosition, newPos));
+
                     mMap.moveCamera(CameraUpdateFactory.newCameraPosition(
                             new CameraPosition.Builder()
                             .target(newPos)
@@ -176,7 +184,43 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
         setupDatabase();
         setupLocation();
         initRetrofit();
+        initPlaces();
         addEvents();
+        autoPlaces();
+    }
+
+    private void autoPlaces() {
+        places = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.places_autocomplete_fragment);
+        places.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS));
+        places.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                if (location_switch.isChecked()) {
+                    destination = place.getAddress();
+                    destination = destination.replace(" ", "+");
+
+                    getDirection();
+                } else {
+                    Toast.makeText(WelcomeActivity.this, "Please change your status to online", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(@NonNull Status status) {
+                Log.d(TAG, "error auto complete " + status.getStatusMessage());
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void initPlaces() {
+        Places.initialize(this, getString(R.string.google_api_key));
+        placesClient = Places.createClient(this);
     }
 
     private void initRetrofit() {
@@ -193,8 +237,6 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
     private void initViews() {
         driverLayout = findViewById(R.id.driver_layout);
         location_switch = findViewById(R.id.location_switch);
-        btnGo = findViewById(R.id.btnGo);
-        edtPlace = findViewById(R.id.edt_place);
     }
 
     private void setupDatabase() {
@@ -208,7 +250,6 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
 
     private void addEvents() {
         location_switch.setOnCheckedChangeListener(this);
-        btnGo.setOnClickListener(this);
     }
 
     private void stopLocationUpdates() {
@@ -342,17 +383,6 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
         }
     }
 
-    @Override
-    public void onClick(View v) {
-        if (v.getId() == R.id.btnGo) {
-            destination = edtPlace.getText().toString();
-            destination = destination.replace(" ", "+"); // replace space with + for fetch data
-            Log.d(TAG, "destination: " + destination);
-
-            getDirection();
-        }
-    }
-
     private void getDirection() {
         currentPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
 
@@ -439,8 +469,8 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
 
                                 carMarker = mMap.addMarker(
                                         new MarkerOptions().position(currentPosition)
-                                        .flat(true)
-                                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.car))
+                                                .flat(true)
+                                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.car))
                                 );
 
                                 handler = new Handler();

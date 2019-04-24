@@ -40,11 +40,15 @@ dependencies {
     implementation 'uk.co.chrisjenx:calligraphy:2.3.0' // library for fonts
     implementation 'com.github.d-max:spots-dialog:1.1@aar'
 
-    // testing
+    //
+
     implementation 'com.google.android.gms:play-services-maps:16.1.0'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'com.firebase:geofire-java:2.3.1'
     implementation 'com.karumi:dexter:5.0.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.5.0'
+    implementation 'com.squareup.retrofit2:converter-scalars:2.5.0'
+    implementation 'com.google.maps.android:android-maps-utils:0.5'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

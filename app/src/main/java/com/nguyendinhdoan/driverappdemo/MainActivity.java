@@ -47,12 +47,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        FirebaseUser driver = FirebaseAuth.getInstance().getCurrentUser();
-        if (driver != null) {
-            Intent intentWelcome = new Intent(MainActivity.this, WelcomeActivity.class);
-            startActivity(intentWelcome);
-            finish();
-        }
+//        FirebaseUser driver = FirebaseAuth.getInstance().getCurrentUser();
+//        if (driver != null) {
+//            Intent intentWelcome = new Intent(MainActivity.this, WelcomeActivity.class);
+//            startActivity(intentWelcome);
+//            finish();
+//        }
     }
 
     @Override

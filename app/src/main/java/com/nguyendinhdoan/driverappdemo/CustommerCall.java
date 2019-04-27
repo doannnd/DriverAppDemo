@@ -70,13 +70,16 @@ public class CustommerCall extends AppCompatActivity {
     }
 
     private void getDirection(double lat, double lng) {
-
+        Log.d(TAG, "LAST LOCATION " + Common.mLastLocation.getLatitude());
+        Log.d(TAG, "LNG: " + Common.mLastLocation.getLongitude());
+        Log.d(TAG, "lat: " + lat);
+        Log.d(TAG, "lon" + lng);
         String requestApi = null;
         try {
             requestApi = "https://maps.googleapis.com/maps/api/directions/json?" +
                     "mode=drivings&" +
                     "transit_routing_preference=less_driving&"+
-                    "origin=" + Common.mLastLocation.getLatitude()+","+Common.mLastLocation.getLatitude()+"&"+
+                    "origin=" + Common.mLastLocation.getLatitude()+","+Common.mLastLocation.getLongitude()+"&"+
                     "destination=" + lat+","+ lng + "&" +
                     "key=" + getString(R.string.google_api_key);
 
@@ -100,14 +103,17 @@ public class CustommerCall extends AppCompatActivity {
                                 // now get distance
                                 JSONObject distance = legsObject.getJSONObject("distance");
                                 txtDistance.setText(distance.getString("text"));
+                                Log.d(TAG, "distance: " + distance);
 
                                 // get time
                                 JSONObject time = legsObject.getJSONObject("duration");
                                 txtTime.setText(time.getString("text"));
+                                Log.d(TAG, "duration: " + time);
 
                                 // get address
                                 String address = legsObject.getString("end_address");
                                 txtAddress.setText(address);
+                                Log.d(TAG, "address: " + address);
 
 
                             } catch (JSONException e) {

@@ -48,6 +48,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.SquareCap;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.PlacesClient;
@@ -58,6 +59,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.google.maps.android.PolyUtil;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
@@ -65,6 +68,7 @@ import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.nguyendinhdoan.driverappdemo.common.Common;
+import com.nguyendinhdoan.driverappdemo.model.Token;
 import com.nguyendinhdoan.driverappdemo.remote.IGoogleAPI;
 
 import org.json.JSONArray;
@@ -84,7 +88,6 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
     private static final String TAG = "ACTIVITY";
     private GoogleMap mMap;
 
-    private Location mLastLocation;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationCallback locationCallback;
     private LocationRequest locationRequest;
@@ -187,6 +190,22 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
         initPlaces();
         addEvents();
         autoPlaces();
+
+        updateFirebaseToken();
+    }
+
+    private void updateFirebaseToken() {
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        final DatabaseReference tokens = db.getReference(Common.token_tbl);
+
+        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
+            @Override
+            public void onSuccess(InstanceIdResult instanceIdResult) {
+                Token token = new Token(instanceIdResult.getToken());
+                tokens.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(token);
+            }
+        });
+
     }
 
     private void autoPlaces() {
@@ -240,7 +259,7 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
     private void setupDatabase() {
-        drivers = FirebaseDatabase.getInstance().getReference("driversLocation");
+        drivers = FirebaseDatabase.getInstance().getReference(Common.driver_tbl);
         geoFire = new GeoFire(drivers);
     }
 
@@ -257,10 +276,10 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
     private void displayLocation() {
-        if (mLastLocation != null) {
+        if (Common.mLastLocation != null) {
             if (location_switch.isChecked()) {
                 geoFire.setLocation(FirebaseAuth.getInstance().getCurrentUser().getUid(),
-                        new GeoLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude()), new GeoFire.CompletionListener() {
+                        new GeoLocation(Common.mLastLocation.getLatitude(), Common.mLastLocation.getLongitude()), new GeoFire.CompletionListener() {
                             @Override
                             public void onComplete(String key, DatabaseError error) {
                                 if (mCurrent != null) {
@@ -269,11 +288,11 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
 
                                 mCurrent = mMap.addMarker(new MarkerOptions()
                                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.car))
-                                        .position(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()))
+                                        .position(new LatLng(Common.mLastLocation.getLatitude(), Common.mLastLocation.getLongitude()))
                                         .title("Your Location"));
 
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                        new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
+                                        new LatLng(Common.mLastLocation.getLatitude(), Common.mLastLocation.getLongitude()),
                                         15.0f
                                 ));
 
@@ -318,9 +337,9 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
-                mLastLocation = locationResult.getLastLocation();
-                Log.d(TAG, "latitude: " + mLastLocation.getLatitude());
-                Log.d(TAG, "longitude: " + mLastLocation.getLongitude());
+                Common.mLastLocation = locationResult.getLastLocation();
+                Log.d(TAG, "latitude: " + Common.mLastLocation.getLatitude());
+                Log.d(TAG, "longitude: " + Common.mLastLocation.getLongitude());
                 displayLocation();
             }
         };
@@ -384,7 +403,7 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
     private void getDirection() {
-        currentPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+        currentPosition = new LatLng(Common.mLastLocation.getLatitude(), Common.mLastLocation.getLongitude());
 
         String requestApi = null;
         try {

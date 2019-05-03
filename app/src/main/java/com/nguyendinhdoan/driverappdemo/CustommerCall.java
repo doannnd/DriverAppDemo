@@ -63,6 +63,8 @@ public class CustommerCall extends AppCompatActivity {
     IFCMService mIfcmService;
 
     String customerId;
+    double lat;
+    double lng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,14 +91,27 @@ public class CustommerCall extends AppCompatActivity {
             }
         });
 
+        btnAccept.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(CustommerCall.this, DriverTracking.class);
+                // send customer location to new activity
+                intent.putExtra("lat", lat);
+                intent.putExtra("lng", lng);
+
+                startActivity(intent);
+                finish();
+            }
+        });
+
         // media
         mediaPlayer = MediaPlayer.create(this, R.raw.ringtone);
         mediaPlayer.setLooping(true);
         mediaPlayer.start();
 
         if (getIntent() != null) {
-            double lat = getIntent().getDoubleExtra("lat", -1.0);
-            double lng = getIntent().getDoubleExtra("lng", -1.0);
+            lat = getIntent().getDoubleExtra("lat", -1.0);
+            lng = getIntent().getDoubleExtra("lng", -1.0);
             customerId = getIntent().getStringExtra("customer");
 
             // just copy getDirection from welcome
@@ -154,9 +169,9 @@ public class CustommerCall extends AppCompatActivity {
         try {
             requestApi = "https://maps.googleapis.com/maps/api/directions/json?" +
                     "mode=drivings&" +
-                    "transit_routing_preference=less_driving&"+
-                    "origin=" + Common.mLastLocation.getLatitude()+","+Common.mLastLocation.getLongitude()+"&"+
-                    "destination=" + lat+","+ lng + "&" +
+                    "transit_routing_preference=less_driving&" +
+                    "origin=" + Common.mLastLocation.getLatitude() + "," + Common.mLastLocation.getLongitude() + "&" +
+                    "destination=" + lat + "," + lng + "&" +
                     "key=" + getString(R.string.google_api_key);
 
             Log.d(TAG, "URL direction: " + requestApi);
@@ -199,7 +214,7 @@ public class CustommerCall extends AppCompatActivity {
 
                         @Override
                         public void onFailure(Call<String> call, Throwable t) {
-                            Toast.makeText(CustommerCall.this, ""+t.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(CustommerCall.this, "" + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
 

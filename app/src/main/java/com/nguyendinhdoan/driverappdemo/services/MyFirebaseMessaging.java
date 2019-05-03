@@ -1,6 +1,7 @@
 package com.nguyendinhdoan.driverappdemo.services;
 
 import android.content.Intent;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -10,8 +11,11 @@ import com.nguyendinhdoan.driverappdemo.CustommerCall;
 
 public class MyFirebaseMessaging extends FirebaseMessagingService {
 
+    private static final String TAG = "MyFirebaseMessaging";
+
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+        Log.d(TAG, "message services");
         super.onMessageReceived(remoteMessage);
 
         // Because i will send the firebase message with contain lat and lng from Rider app

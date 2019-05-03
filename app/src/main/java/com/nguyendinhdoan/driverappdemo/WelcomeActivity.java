@@ -56,9 +56,12 @@ import com.google.android.libraries.places.internal.es;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.maps.android.PolyUtil;
@@ -116,6 +119,8 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
     private PlacesClient placesClient;
 
     private IGoogleAPI mServices;
+
+    DatabaseReference onlineRef, currentUserRef;
 
     Runnable drawPathRunnable = new Runnable() {
         @Override
@@ -251,6 +256,24 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.driver_map);
         mapFragment.getMapAsync(this);
+
+        // presense system
+        onlineRef = FirebaseDatabase.getInstance().getReference().child(".info/connected");
+        currentUserRef = FirebaseDatabase.getInstance().getReference(Common.driver_tbl)
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+
+        onlineRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // we will remove value from driver tbl when driver disconnected
+                currentUserRef.onDisconnect().removeValue();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void initViews() {
@@ -391,9 +414,17 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if (isChecked) {
+
+            // set connected when switch to on
+            FirebaseDatabase.getInstance().goOnline();
+
             Snackbar.make(driverLayout, "You are online", Snackbar.LENGTH_LONG).show();
             startLocationUpdates();
         } else {
+
+            // set disconnected when switch to offlien
+            FirebaseDatabase.getInstance().goOffline();
+
             Snackbar.make(driverLayout, "You are offline", Snackbar.LENGTH_LONG).show();
             stopLocationUpdates();
             mMap.clear();
